@@ -17,6 +17,11 @@ const (
 )
 
 type (
+	credential struct {
+		apiId  string
+		apiKey string
+	}
+
 	// A Client manages communications with the Kairos API.
 	Kairos struct {
 		// HTTP client
@@ -29,7 +34,7 @@ type (
 		UserAgent string
 
 		// App info used to save the id and app key
-		AppInfo *url.Userinfo
+		AppInfo *credential
 	}
 
 	// Kairos options
@@ -58,7 +63,7 @@ func New(api, appId, appKey string) (*Kairos, error) {
 		client:    http.DefaultClient,
 		BaseUrl:   baseUrl,
 		UserAgent: userAgent,
-		AppInfo:   url.UserPassword(appId, appKey),
+		AppInfo:   &credential{appId, appKey},
 	}
 
 	return k, nil
@@ -130,9 +135,8 @@ func (k *Kairos) newRequest(method, path string, body interface{}) (*http.Reques
 	// Set up header
 	req.Header.Add("User-Agent", k.UserAgent)
 	if appInfo := k.AppInfo; appInfo != nil {
-		key, _ := appInfo.Password()
-		req.Header.Add("app_id", appInfo.Username())
-		req.Header.Add("app_key", key)
+		req.Header.Add("app_id", appInfo.apiId)
+		req.Header.Add("app_key", appInfo.apiKey)
 	}
 
 	return req, nil
